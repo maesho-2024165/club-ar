@@ -5,33 +5,62 @@
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <script>
-      // 的（ターゲット）をクリックした時の挙動を定義
+      // スコアを記憶する箱（変数）を用意します
+      let score = 0;
+
       AFRAME.registerComponent('target-handler', {
         init: function () {
-          this.el.addEventListener('click', () => {
-            // 的を一度消して、ランダムな位置に再配置する
-            this.respawn();
+          const el = this.el;
+          const scoreText = document.querySelector('#score-text');
+          const hitSound = document.querySelector('#hit-sound');
+
+          // 的がクリックされた時の動き
+          el.addEventListener('click', () => {
+            // 1. 効果音を鳴らす（最初から再生し直す）
+            if(hitSound) {
+              hitSound.currentTime = 0; 
+              hitSound.play();
+            }
+
+            // 2. スコアを100点増やして、画面の文字を書き換える
+            score += 100;
+            scoreText.setAttribute('value', 'SCORE: ' + score);
+
+            // 3. 爽快な演出（金色に光らせて、少し大きくする）
+            el.setAttribute('color', '#FFD700'); // ゴールド色
+            el.setAttribute('scale', '1.5 1.5 1.5'); // 1.5倍の大きさ
+
+            // 0.15秒（150ミリ秒）後に、元に戻して別の場所へ移動させる
+            setTimeout(() => {
+              this.respawn();
+            }, 150);
           });
         },
         respawn: function () {
-          // ランダムな位置（X: -2〜2, Y: 0.5〜2, Z: -2〜2）を計算
+          const el = this.el;
+          // 色とサイズを元の「赤色」「通常の大きさ」に戻す
+          el.setAttribute('color', 'red');
+          el.setAttribute('scale', '1 1 1');
+
+          // 新しいランダムな場所へ移動
           const newX = (Math.random() - 0.5) * 4;
-          const newY = Math.random() * 1.5 + 0.5;
+          const newY = Math.random() * 2 + 0.5;
           const newZ = (Math.random() - 0.5) * 4;
-          this.el.setAttribute('position', {x: newX, y: newY, z: newZ});
-          
-          // 当たった時の演出（色を変えるなど）
-          this.el.setAttribute('material', 'color', 'yellow');
-          setTimeout(() => {
-            this.el.setAttribute('material', 'color', 'red');
-          }, 200);
+          el.setAttribute('position', {x: newX, y: newY, z: newZ});
         }
       });
     </script>
   </head>
   <body style="margin: 0; overflow: hidden;">
+    
+    <audio id="hit-sound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3" preload="auto"></audio>
+
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" cursor="fuse: false; rayOrigin: mouse">
       
+      <a-entity camera>
+        <a-text id="score-text" value="SCORE: 0" position="0 -0.5 -1" color="yellow" align="center" width="3"></a-text>
+      </a-entity>
+
       <a-marker preset="hiro">
         <a-sphere 
           target-handler 
@@ -39,11 +68,7 @@
           radius="0.3" 
           color="red">
         </a-sphere>
-        
-        <a-text value="Tap to Shoot!" position="-1 2 0" color="white" align="center"></a-text>
       </a-marker>
-
-      <a-entity camera></a-entity>
       
     </a-scene>
   </body>
