@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script>
+      // 的（ターゲット）をクリックした時の挙動を定義
+      AFRAME.registerComponent('target-handler', {
+        init: function () {
+          this.el.addEventListener('click', () => {
+            // 的を一度消して、ランダムな位置に再配置する
+            this.respawn();
+          });
+        },
+        respawn: function () {
+          // ランダムな位置（X: -2〜2, Y: 0.5〜2, Z: -2〜2）を計算
+          const newX = (Math.random() - 0.5) * 4;
+          const newY = Math.random() * 1.5 + 0.5;
+          const newZ = (Math.random() - 0.5) * 4;
+          this.el.setAttribute('position', {x: newX, y: newY, z: newZ});
+          
+          // 当たった時の演出（色を変えるなど）
+          this.el.setAttribute('material', 'color', 'yellow');
+          setTimeout(() => {
+            this.el.setAttribute('material', 'color', 'red');
+          }, 200);
+        }
+      });
+    </script>
+  </head>
+  <body style="margin: 0; overflow: hidden;">
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" cursor="fuse: false; rayOrigin: mouse">
+      
+      <a-marker preset="hiro">
+        <a-sphere 
+          target-handler 
+          position="0 1 -2" 
+          radius="0.3" 
+          color="red">
+        </a-sphere>
+        
+        <a-text value="Tap to Shoot!" position="-1 2 0" color="white" align="center"></a-text>
+      </a-marker>
+
+      <a-entity camera></a-entity>
+      
+    </a-scene>
+  </body>
+</html>
